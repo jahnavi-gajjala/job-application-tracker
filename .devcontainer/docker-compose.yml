@@ -1,0 +1,27 @@
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/java:1-17-bookworm
+    volumes:
+      - ..:/workspaces/job-application-tracker:cached
+    command: sleep infinity
+    environment:
+      DB_URL: jdbc:mysql://db:3306/job_tracker?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: jobuser
+      DB_PASSWORD: jobpassword
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: job_tracker
+      MYSQL_USER: jobuser
+      MYSQL_PASSWORD: jobpassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-prootpassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
